@@ -14,17 +14,19 @@ function mastotoot_form($form, &$form_state) {
 
   $form['instance_url'] = [
     '#type' => 'textfield',
-    '#title' => 'Instance URL',
+    '#title' => t('Instance URL'),
     '#default_value' => $config->get('instance_url'),
     '#required' => TRUE,
-    '#description' => '@todo',
+    '#description' => t('URL of the Mastodon instance to post to, including "https", no trailing slash. For example !example.', [
+      '!example' => '<code>https://myinstance.social</code>',
+    ]),
   ];
   $form['access_token'] = [
     '#type' => 'textfield',
-    '#title' => 'Access token',
+    '#title' => t('Access token'),
     '#default_value' => $config->get('access_token'),
     '#required' => TRUE,
-    '#description' => '@todo',
+    '#description' => t('The access token created on your instance for your Mastodon account.'),
   ];
 
   $content_type = $config->get('content_type');
@@ -34,7 +36,7 @@ function mastotoot_form($form, &$form_state) {
   }
   $form['content_type'] = [
     '#type' => 'select',
-    '#title' => 'Node type for toots',
+    '#title' => t('Content type for toots'),
     '#options' => _mastotoot_get_node_type_options(),
     '#default_value' => $content_type,
     '#ajax' => [
@@ -42,7 +44,7 @@ function mastotoot_form($form, &$form_state) {
       'callback' => '_mastotoot_ajax_callback',
       'wrapper' => 'mastotoot-replace',
     ],
-    '#description' => 'setting to none will disable tooting',
+    '#description' => t('The content type to share on Mastodon. Setting to none will disable tooting.'),
   ];
   $form['fields'] = [
     '#type' => 'container',
@@ -51,18 +53,18 @@ function mastotoot_form($form, &$form_state) {
   ];
   $form['fields']['text_field'] = [
     '#type' => 'select',
-    '#title' => 'Field for additional text',
+    '#title' => t('Field for additional text'),
     '#options' => _mastotoot_get_node_field_options('text', $content_type),
     '#default_value' => $config->get('text_field'),
-    '#description' => '... additionally to node title ...'
+    '#description' => t('By default the toot content will contain the node title. Choose a text field for more content.'),
   ];
-  // @todo what about entityreference?
+  // @todo Consider entityreference fields?
   $form['fields']['hashtag_field'] = [
     '#type' => 'select',
-    '#title' => 'Field for hashtags',
+    '#title' => t('Field for hashtags'),
     '#options' => _mastotoot_get_node_field_options('taxonomy', $content_type),
     '#default_value' => $config->get('hashtag_field'),
-    '#description' => '... do not add Rauten ...',
+    '#description' => t('Backdrop terms will get converted to hashtags before sending.'),
   ];
   $form['#validate'][] = 'mastotoot_form_validate';
 
@@ -126,4 +128,6 @@ function mastotoot_form_validate($form, &$form_state) {
     // Also remove trailing slash, if any.
     $form_state['values']['instance_url'] = rtrim($url, '/');
   }
+  // Trim unintentionally copy-pasted whitespace from token.
+  $form_state['values']['access_token'] = trim($form_state['values']['access_token']);
 }
