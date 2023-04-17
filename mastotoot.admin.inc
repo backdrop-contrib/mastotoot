@@ -116,5 +116,14 @@ function _mastotoot_get_node_field_options($field_type, $content_type) {
  * Validation callback for settings form.
  */
 function mastotoot_form_validate($form, &$form_state) {
-  // @todo check valid external url.
+  // Remove white space.
+  $url = trim($form_state['values']['instance_url']);
+  if (!valid_url($url, TRUE)) {
+    $message = t('Instance URL must be a valid external URL');
+    form_set_error('instance_url', $message);
+  }
+  else {
+    // Also remove trailing slash, if any.
+    $form_state['values']['instance_url'] = rtrim($url, '/');
+  }
 }
