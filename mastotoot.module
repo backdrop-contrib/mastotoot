@@ -23,7 +23,6 @@ function mastotoot_node_update(Node $node) {
   $content_type = config_get('mastotoot.settings', 'content_type');
 
   if ($node->type == $content_type) {
-    // @todo consider is_active_revision?
     $new_status = $node->status;
     $original_status = $node->original->status;
 
