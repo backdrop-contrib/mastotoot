@@ -146,8 +146,9 @@ class MastoToot {
       $tags_field = field_get_items('node', $node, $config['hashtag_field']);
       $tags = [];
       foreach ($tags_field as $index => $item) {
-        // @todo camelcase and strip white spaces
-        $tags[] = '#' . $item['name'];
+        // Scheduled nodes only provide the "tid", when published.
+        $term = taxonomy_term_load($item['tid']);
+        $tags[] = '#' . $this->camelCase($term->name);
       }
       $hashtags = implode(' ', $tags);
       $build['hashtags'] = $hashtags;
@@ -231,6 +232,29 @@ class MastoToot {
     db_delete('mastotoot')
       ->condition('nid', $nid)
       ->execute();
+  }
+
+  /**
+   * Replaces whitespace and makes the string camel case.
+   *
+   * @param string $name
+   * @return string
+   */
+  protected function camelCase($name) {
+    if (preg_match('/\s/', $name)) {
+      $words = explode(' ', $name);
+      $result = [];
+      foreach ($words as $index => $word) {
+        if ($index == 0) {
+          $result[] = $word;
+        }
+        else {
+          $result[] = ucfirst($word);
+        }
+      }
+      $name = implode('', $result);
+    }
+    return $name;
   }
 
 }
