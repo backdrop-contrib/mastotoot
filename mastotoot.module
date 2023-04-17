@@ -62,10 +62,22 @@ function mastotoot_menu() {
     'title' => 'Mastodon Toot',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('mastotoot_form'),
-    'access arguments' => array('administer site configuration'),// @todo custom perm
+    'access arguments' => array('configure mastotoot'),
     'file' => 'mastotoot.admin.inc',
   ];
   return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function mastotoot_permission() {
+  return [
+    'configure mastotoot' => [
+      'title' => t('Configure Mastodon Toot'),
+      'description' => t('Configure settings for the Mastodon Toot module.'),
+    ],
+  ];
 }
 
 /**
