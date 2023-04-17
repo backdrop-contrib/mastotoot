@@ -1,0 +1,37 @@
+<?php
+/**
+ * @file
+ * Database schema of the Mastodon Toot module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function mastotoot_schema() {
+  $schema['mastotoot'] = [
+    'fields' => [
+      'id' => [
+        'description' => 'The primary identifier.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'nid' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {node}.nid of content this toot has been built from.',
+      ],
+      'toot_id' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The remote Mastodon status ID.',
+      ],
+    ],
+    'indexes' => ['nid' => ['nid']],
+    'primary key' => ['id'],
+  ];
+  return $schema;
+}

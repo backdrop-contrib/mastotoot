@@ -1,0 +1,90 @@
+<?php
+/**
+ * @file
+ * Hook implementations of the Mastodon Toot module.
+ */
+
+/**
+ * Implements hook_node_insert().
+ */
+function mastotoot_node_insert(Node $node) {
+  $content_type = config_get('mastotoot.settings', 'content_type');
+
+  if ($node->type == $content_type && $node->status) {
+    $toot = new MastoToot($node);
+    $toot->submitToot();
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function mastotoot_node_update(Node $node) {
+  $content_type = config_get('mastotoot.settings', 'content_type');
+
+  if ($node->type == $content_type) {
+    // @todo consider is_active_revision?
+    $new_status = $node->status;
+    $original_status = $node->original->status;
+
+    if ($new_status != $original_status) {
+      $toot = new MastoToot($node);
+
+      if ($new_status == NODE_PUBLISHED) {
+        $toot->submitToot();
+      }
+      elseif ($new_status == NODE_NOT_PUBLISHED && $toot->isShared()) {
+        $toot->deleteToot();
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function mastotoot_node_delete(Node $node) {
+  $content_type = config_get('mastotoot.settings', 'content_type');
+
+  if ($node->type == $content_type) {
+    // @todo Maybe ignore type here (setting might have changed)?
+    $toot = new MastoToot($node);
+    if ($toot->isShared()) {
+      $toot->deleteToot();
+    }
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function mastotoot_menu() {
+  $items['admin/config/services/mastotoot'] = [
+    'title' => 'Mastodon Toot',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('mastotoot_form'),
+    'access arguments' => array('administer site configuration'),// @todo custom perm
+    'file' => 'mastotoot.admin.inc',
+  ];
+  return $items;
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function mastotoot_autoload_info() {
+  return [
+    'MastoToot' => 'mastotoot.class.inc',
+  ];
+}
+
+/**
+ * Implements hook_config_info().
+ */
+function mastotoot_config_info() {
+  $prefixes['mastotoot.settings'] = [
+    'label' => t('Mastodon Toot settings'),
+    'group' => t('Configuration'),
+  ];
+  return $prefixes;
+}
