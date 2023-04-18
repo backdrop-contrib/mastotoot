@@ -33,7 +33,9 @@ class MastoToot {
    *
    * @see https://docs.joinmastodon.org/entities/Status/#visibility
    */
-  protected $toot_visibility = 'public';
+  //protected $toot_visibility = 'public';
+  // @todo reset to public. Create UI?
+  protected $toot_visibility = 'unlisted';
 
   /**
    * @param Node $node
@@ -46,7 +48,9 @@ class MastoToot {
     }
 
     $this->mastodon_url = $config->get('instance_url') . '/api/v1/statuses';
-    $this->auth_header = 'Authorization: Bearer ' . $config->get('access_token');
+    $this->auth_header = [
+      'Authorization' => 'Bearer ' . $config->get('access_token'),
+    ];
     $this->node = $node;
     if (!$node->isNew()) {
       $this->toot_id = $this->fetchTootId($node->nid);
@@ -66,38 +70,36 @@ class MastoToot {
       $langcode = config_get('system.core', 'language_default');
     }
 
-    // No clue, what that structure is supposed to be.
-    // @todo is the application array supposed to be in the outer array or part
-    // of the status array/string?
     $content_data = [
       'status' => $this->buildTootContent(),
       'language' => $langcode,
       'visibility' => $this->toot_visibility,
-      'application' => [
-        'name' => 'BackdropCMS',
-        'website' => 'https://backdropcms.org/',
-      ],
     ];
 
+    $headers = $this->auth_header;
+    $headers['Content-Type'] = 'application/json';
     $options = [
-      'headers' => [
-        $this->auth_header,
-        'Content-Type: application/json',
-      ],
+      'headers' => $headers,
       'method' => 'POST',
       'data' => json_encode($content_data),
       'timeout' => 5,
     ];
-    debug($options);
-    //backdrop_http_request($this->mastodon_url, $options);
+    $response = backdrop_http_request($this->mastodon_url, $options);
 
-    // @todo actually connect, verify success, get status->id
-    // @see https://docs.joinmastodon.org/entities/Status/#id
-    $toot_id = '1234234588907436734';
-    if (!empty($toot_id)) {
-      $this->addRecord($node->nid, $toot_id);
+    if ($response->code === '200') {
+      $data = json_decode($response->data, TRUE);
+      // @see https://docs.joinmastodon.org/entities/Status/#id
+      if (!empty($data['id'])) {
+        $this->addRecord($node->nid, $data['id']);
+        backdrop_set_message('it worked!');
+      }
     }
-    // @todo maybe set a message, maybe watchdog on err.
+    else {
+      // 404, 401, ... 5xx
+      backdrop_set_message('0oooops!', [], 'warning');
+      // @todo watchdog, wording...
+    }
+
   }
 
   /**
@@ -105,20 +107,20 @@ class MastoToot {
    */
   public function deleteToot() {
     $options = [
-      'headers' => [
-        $this->auth_header,
-      ],
+      'headers' => $this->auth_header,
       'method' => 'DELETE',
       'timeout' => 5,
     ];
-    debug($options);
     $url = $this->mastodon_url . '/' . $this->toot_id;
-    debug($url);
-    //backdrop_http_request($url, $options);
-    // @todo check response.
-    // Ugh wait... can different revisions have different toots?
-    $this->deleteRecord($this->node->nid);
-    // @todo watchdog on error.
+    $response = backdrop_http_request($url, $options);
+    if ($response->code === '200') {
+      $this->deleteRecord($this->node->nid);
+      backdrop_set_message('deleted!');
+    }
+    else {
+      backdrop_set_message('0oooops!', [], 'warning');
+      // @todo message and watchdog on failure.
+    }
   }
 
   /**
