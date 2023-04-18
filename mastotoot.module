@@ -58,12 +58,22 @@ function mastotoot_node_delete(Node $node) {
  * Implements hook_menu().
  */
 function mastotoot_menu() {
+  // @todo Tabs not working yet.
   $items['admin/config/services/mastotoot'] = [
     'title' => 'Mastodon Toot',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('mastotoot_form'),
     'access arguments' => array('configure mastotoot'),
     'file' => 'mastotoot.admin.inc',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  ];
+  $items['admin/config/services/mastotoot/verify'] = [
+    'title' => 'Verify credentials',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('mastotoot_verify_token_form'),
+    'access arguments' => array('configure mastotoot'),
+    'file' => 'mastotoot.admin.inc',
+    'type' => MENU_LOCAL_TASK,
   ];
   return $items;
 }

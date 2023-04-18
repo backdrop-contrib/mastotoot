@@ -131,3 +131,85 @@ function mastotoot_form_validate($form, &$form_state) {
   // Trim unintentionally copy-pasted whitespace from token.
   $form_state['values']['access_token'] = trim($form_state['values']['access_token']);
 }
+
+/**
+ * Mini-form to verify proper authentication.
+ */
+function mastotoot_verify_token_form($form, &$form_state) {
+  $config = config('mastotoot.settings')->get();
+  $show_submit = TRUE;
+  if (empty($config['instance_url']) || empty($config['access_token'])) {
+    $info = t('No setting for instance URL or access token.');
+    $show_submit = FALSE;
+  }
+  else {
+    $info = '<p>' . t('Instance URL') . ': ' . $config['instance_url'] . '</p>';
+    $info .= '<p>' . t('Access token') . ': ' . $config['access_token'] . '</p>';
+  }
+  $form['info'] = [
+    '#type' => 'markup',
+    '#markup' => $info,
+  ];
+  if ($show_submit) {
+    $form['submit'] = [
+      '#type' => 'submit',
+      '#value' => 'check',
+      '#submit' => ['mastotoot_verify_submit'],
+    ];
+  }
+  return $form;
+}
+
+/**
+ * Submission callback for token verification.
+ *
+ * This procedure is mostly undocumented. It seems like this GET call
+ * requires full "read" access settings server-side. No way to set the scope
+ * per request? Which makes this check concept counter-productive.
+ *
+ * @todo figure out a way to limit scope check, or drop this whole check.
+ */
+function mastotoot_verify_submit($form, &$form_state) {
+  $config = config('mastotoot.settings')->get();
+  $verify_url = $config['instance_url'] . '/api/v1/apps/verify_credentials';
+  $data = [
+    'scope' => 'read:statuses,write:statues',
+  ];
+  $options = [
+    'headers' => [
+      'Authorization' => 'Bearer ' . $config['access_token'],
+    ],
+    'method' => 'GET',
+    'timeout' => 5,
+  ];
+  $response = backdrop_http_request($verify_url, $options);
+
+  switch ($response->code) {
+    case '200':
+      backdrop_set_message(t('Success: your access token for %url works properly.', [
+        '%url' => $config['instance_url'],
+      ]));
+    break;
+
+    case '401':
+    case '403':
+      $message = '<strong>' . $response->status_message . '</strong> ';
+      $info = json_decode($response->data, TRUE);
+      foreach ($info as $key => $value) {
+        $message .= $key . ': ' . $value;
+      }
+      backdrop_set_message($message, 'warning');
+    break;
+
+    case '404':
+      backdrop_set_message(t('Got error: %url not found.', [
+        '%url' => $verify_url,
+      ]), 'warning');
+    break;
+
+    default:
+      backdrop_set_message(t('Unknown problem, see full debug output below.'), 'error');
+      // Not sure what other output could be helpful.
+      debug($response);
+  }
+}
