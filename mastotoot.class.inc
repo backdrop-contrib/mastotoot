@@ -85,19 +85,24 @@ class MastoToot {
       'timeout' => 5,
     ];
     $response = backdrop_http_request($this->mastodon_url, $options);
+    $instance = config_get('mastotoot.settings', 'instance_url');
 
     if ($response->code === '200') {
       $data = json_decode($response->data, TRUE);
       // @see https://docs.joinmastodon.org/entities/Status/#id
       if (!empty($data['id'])) {
         $this->addRecord($node->nid, $data['id']);
-        backdrop_set_message('it worked!');
+        backdrop_set_message(t('Successfully posted content to %url.', [
+          '%url' => $instance,
+        ]));
       }
     }
     else {
-      // 404, 401, ... 5xx
-      backdrop_set_message('0oooops!', 'warning');
-      // @todo watchdog, wording...
+      backdrop_set_message(t('Problem when posting content to %url.', [
+        '%url' => $instance,
+      ]), 'warning');
+      $info = $this->createWatchdogInfo($response);
+      watchdog('mastotoot', $info, NULL, WATCHDOG_ERROR);
     }
 
   }
@@ -113,13 +118,23 @@ class MastoToot {
     ];
     $url = $this->mastodon_url . '/' . $this->toot_id;
     $response = backdrop_http_request($url, $options);
+
     if ($response->code === '200') {
       $this->deleteRecord($this->node->nid);
-      backdrop_set_message('deleted!');
+      backdrop_set_message(t('Shared post on %instance has been deleted.', [
+        '%instance' => config_get('mastotoot.settings', 'instance_url'),
+      ]));
     }
+    // The remote toot doesn't exist anymore, delete obsolete record.
+    elseif ($response->code === '404') {
+      $this->deleteRecord($this->node->nid);
+      $message = 'Status ID not found remotely, deleted local record.';
+      watchdog('mastotoot', $message, NULL, WATCHDOG_WARNING);
+    }
+    // Other errors, like 401 or 5xx.
     else {
-      backdrop_set_message('0oooops!', 'warning');
-      // @todo message and watchdog on failure.
+      $info = $this->createWatchdogInfo($response);
+      watchdog('mastotoot', $info, NULL, WATCHDOG_ERROR);
     }
   }
 
@@ -259,6 +274,24 @@ class MastoToot {
       $name = implode('', $result);
     }
     return $name;
+  }
+
+  /**
+   * @param object $response
+   * @return string
+   */
+  protected function createWatchdogInfo($response) {
+    $info = '';
+    if (!empty($response->status_message)) {
+      $info = $response->status_message;
+    }
+    if (!empty($response->data)) {
+      $info .= ': ' . $response->data;
+    }
+    if (empty($info)) {
+      $info = 'An unknown error occured.';
+    }
+    return $info;
   }
 
 }
