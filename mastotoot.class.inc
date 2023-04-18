@@ -96,7 +96,7 @@ class MastoToot {
     }
     else {
       // 404, 401, ... 5xx
-      backdrop_set_message('0oooops!', [], 'warning');
+      backdrop_set_message('0oooops!', 'warning');
       // @todo watchdog, wording...
     }
 
@@ -118,7 +118,7 @@ class MastoToot {
       backdrop_set_message('deleted!');
     }
     else {
-      backdrop_set_message('0oooops!', [], 'warning');
+      backdrop_set_message('0oooops!', 'warning');
       // @todo message and watchdog on failure.
     }
   }
@@ -146,15 +146,17 @@ class MastoToot {
     // Provide taxonomy term items as hashtags.
     if (!empty($config['hashtag_field'])) {
       $tags_field = field_get_items('node', $node, $config['hashtag_field']);
-      $tags = [];
-      foreach ($tags_field as $index => $item) {
-        // Scheduled nodes only provide the "tid", when published.
-        $term = taxonomy_term_load($item['tid']);
-        $tags[] = '#' . $this->camelCase($term->name);
+      if ($tags_field) {
+        $tags = [];
+        foreach ($tags_field as $index => $item) {
+          // Scheduled nodes only provide the "tid", when published.
+          $term = taxonomy_term_load($item['tid']);
+          $tags[] = '#' . $this->camelCase($term->name);
+        }
+        $hashtags = implode(' ', $tags);
+        $build['hashtags'] = $hashtags;
+        $length = $length - mb_strlen($hashtags);
       }
-      $hashtags = implode(' ', $tags);
-      $build['hashtags'] = $hashtags;
-      $length = $length - mb_strlen($hashtags);
     }
 
     // No way to get the alias in hook_node_insert, unless set manually.
