@@ -14,7 +14,7 @@ class MastoToot {
   protected $mastodon_url;
 
   /**
-   * @var string
+   * @var array<string, string>
    */
   protected $auth_header;
 
@@ -60,6 +60,8 @@ class MastoToot {
 
   /**
    * Create and submit a toot to a Mastodon instance.
+   *
+   * @return void
    */
   public function submitToot() {
     // @todo consider what to do with very old nodes.
@@ -110,6 +112,8 @@ class MastoToot {
 
   /**
    * Delete an existing toot on a Mastodon instance.
+   *
+   * @return void
    */
   public function deleteToot() {
     $options = [
@@ -168,7 +172,9 @@ class MastoToot {
         foreach ($tags_field as $index => $item) {
           // Scheduled nodes only provide the "tid", when published.
           $term = taxonomy_term_load($item['tid']);
-          $tags[] = '#' . $this->camelCase($term->name);
+          if ($term) {
+            $tags[] = '#' . $this->camelCase($term->name);
+          }
         }
         $hashtags = implode(' ', $tags);
         $build['hashtags'] = $hashtags;
@@ -239,6 +245,8 @@ class MastoToot {
    *   The node ID.
    * @param string $toot_id
    *   The toot ID gathered from Mastodon.
+   *
+   * @return void
    */
   protected function addRecord($nid, $toot_id) {
     $query = db_insert('mastotoot')
@@ -253,6 +261,8 @@ class MastoToot {
   /**
    * @param int $nid
    *   The node ID.
+   *
+   * @return void
    */
   protected function deleteRecord($nid) {
     db_delete('mastotoot')

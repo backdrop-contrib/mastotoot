@@ -73,6 +73,8 @@ function mastotoot_form($form, &$form_state) {
 
 /**
  * Ajax callback to dynamically replace form parts.
+ *
+ * @return array<string, array>
  */
 function _mastotoot_ajax_callback($form, $form_state) {
   return $form['fields'];
@@ -81,7 +83,7 @@ function _mastotoot_ajax_callback($form, $form_state) {
 /**
  * Helper function to build select list options from node types.
  *
- * @return array
+ * @return array<string, string>
  */
 function _mastotoot_get_node_type_options() {
   $all_types = node_type_get_types();
@@ -101,7 +103,7 @@ function _mastotoot_get_node_type_options() {
  *   Machine name of the field.
  * @param string $content_type
  *   Machine name of the node type.
- * @return array
+ * @return array<int|string, string>
  */
 function _mastotoot_get_node_field_options($field_type, $content_type) {
   $options = ['' => t('- None -')];
@@ -175,6 +177,8 @@ function mastotoot_verify_token_form($form, &$form_state) {
  *
  * Note: this only checks, if the token is accepted, not if it works for
  * posting.
+ *
+ * @return void
  */
 function mastotoot_verify_submit($form, &$form_state) {
   $config = config('mastotoot.settings')->get();
