@@ -98,7 +98,9 @@ function _mastotoot_get_node_type_options() {
  * Helper function to provide field options for select lists.
  *
  * @param string $field_type
+ *   Machine name of the field.
  * @param string $content_type
+ *   Machine name of the node type.
  * @return array
  */
 function _mastotoot_get_node_field_options($field_type, $content_type) {

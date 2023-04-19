@@ -39,6 +39,7 @@ class MastoToot {
 
   /**
    * @param Node $node
+   *   The node entity.
    */
   public function __construct(Node $node) {
     $config = config('mastotoot.settings');
@@ -142,6 +143,7 @@ class MastoToot {
    * Create toot content from a node.
    *
    * @return string
+   *   Toot text content.
    */
   protected function buildTootContent() {
     $config = config('mastotoot.settings')->get();
@@ -189,7 +191,7 @@ class MastoToot {
     }
     global $base_url;
     $build['url'] = $base_url . '/' . $alias;
-    // URLs have a fixed charcount in Mastodon. @todo verify
+    // URLs have a fixed charcount in Mastodon.
     $length = $length - 23;
 
     // Add a text from configured field, fill up available characters.
@@ -220,7 +222,9 @@ class MastoToot {
 
   /**
    * @param int $nid
+   *   The node ID.
    * @return string|null
+   *   The toot ID on Mastodon, NULL if not shared yet.
    */
   protected function fetchTootId($nid) {
     $query = db_query('SELECT toot_id FROM {mastotoot} WHERE nid = :nid', [
@@ -232,7 +236,9 @@ class MastoToot {
 
   /**
    * @param int $nid
+   *   The node ID.
    * @param string $toot_id
+   *   The toot ID gathered from Mastodon.
    */
   protected function addRecord($nid, $toot_id) {
     $query = db_insert('mastotoot')
@@ -246,6 +252,7 @@ class MastoToot {
 
   /**
    * @param int $nid
+   *   The node ID.
    */
   protected function deleteRecord($nid) {
     db_delete('mastotoot')
@@ -257,7 +264,9 @@ class MastoToot {
    * Replaces whitespace and makes the string camel case.
    *
    * @param string $name
+   *   The taxonomy term name.
    * @return string
+   *   The converted term, usable as hashtag.
    */
   protected function camelCase($name) {
     if (preg_match('/\s/', $name)) {
@@ -278,7 +287,9 @@ class MastoToot {
 
   /**
    * @param object $response
+   *   Response as provided by backdrop_http_request().
    * @return string
+   *   A string suitable for messages.
    */
   protected function createWatchdogInfo($response) {
     $info = '';
