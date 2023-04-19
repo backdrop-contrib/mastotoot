@@ -180,7 +180,7 @@ function mastotoot_verify_token_form($form, &$form_state) {
   $config = config('mastotoot.settings')->get();
   $form['help'] = [
     '#type' => 'help',
-    '#markup' => t('Verify that your configured URL and token work.'),
+    '#markup' => t('Test if your configured URL and token work.'),
   ];
   $show_submit = TRUE;
   if (empty($config['instance_url']) || empty($config['access_token'])) {
@@ -202,7 +202,7 @@ function mastotoot_verify_token_form($form, &$form_state) {
   if ($show_submit) {
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => t('Verify'),
+      '#value' => t('Check'),
       '#submit' => ['mastotoot_verify_submit'],
     ];
   }
