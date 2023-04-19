@@ -133,18 +133,26 @@ function mastotoot_form_validate($form, &$form_state) {
 }
 
 /**
- * Mini-form to verify proper authentication.
+ * Small form to verify Mastodon token auth.
  */
 function mastotoot_verify_token_form($form, &$form_state) {
   $config = config('mastotoot.settings')->get();
+  $form['help'] = [
+    '#type' => 'help',
+    '#markup' => t('Verify that your configured URL and token work.'),
+  ];
   $show_submit = TRUE;
   if (empty($config['instance_url']) || empty($config['access_token'])) {
     $info = t('No setting for instance URL or access token.');
     $show_submit = FALSE;
   }
   else {
-    $info = '<p>' . t('Instance URL') . ': ' . $config['instance_url'] . '</p>';
-    $info .= '<p>' . t('Access token') . ': ' . $config['access_token'] . '</p>';
+    $info = '<dl class="mastotoot-settings">';
+    $info .= '<dt>' . t('Your instance URL') . '</dt>';
+    $info .= '<dd>' . $config['instance_url'] . '</dd>';
+    $info .= '<dt>' . t('Your access token') . '</dt>';
+    $info .= '<dd>' . $config['access_token'] . '</dd>';
+    $info .= '</dl>';
   }
   $form['info'] = [
     '#type' => 'markup',
@@ -153,7 +161,7 @@ function mastotoot_verify_token_form($form, &$form_state) {
   if ($show_submit) {
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => 'check',
+      '#value' => t('Verify'),
       '#submit' => ['mastotoot_verify_submit'],
     ];
   }
@@ -161,20 +169,20 @@ function mastotoot_verify_token_form($form, &$form_state) {
 }
 
 /**
- * Submission callback for token verification.
+ * Submission callback for access token verification.
  *
- * This procedure is mostly undocumented. It seems like this GET call
- * requires full "read" access settings server-side. No way to set the scope
- * per request? Which makes this check concept counter-productive.
- *
- * @todo figure out a way to limit scope check, or drop this whole check.
+ * Note: this only checks, if the token is accepted, not if it works for
+ * posting.
  */
 function mastotoot_verify_submit($form, &$form_state) {
   $config = config('mastotoot.settings')->get();
-  $verify_url = $config['instance_url'] . '/api/v1/apps/verify_credentials';
-  $data = [
-    'scope' => 'read:statuses,write:statues',
-  ];
+  // We can not use '/api/v1/apps/verify_credentials' here, as that only checks
+  // for scope "read" (full), which is more than this app needs.
+  // Scopes required for our app:
+  // - read:statuses
+  // - write:statues
+  // - read:accounts (for this check only)
+  $verify_url = $config['instance_url'] . '/api/v1/accounts/verify_credentials';
   $options = [
     'headers' => [
       'Authorization' => 'Bearer ' . $config['access_token'],
@@ -186,7 +194,7 @@ function mastotoot_verify_submit($form, &$form_state) {
 
   switch ($response->code) {
     case '200':
-      backdrop_set_message(t('Success: your access token for %url works properly.', [
+      backdrop_set_message(t('Success: your access token is accepted at %url.', [
         '%url' => $config['instance_url'],
       ]));
     break;
