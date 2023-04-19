@@ -56,7 +56,7 @@ function mastotoot_form($form, &$form_state) {
     '#title' => t('Field for additional text'),
     '#options' => _mastotoot_get_node_field_options('text', $content_type),
     '#default_value' => $config->get('text_field'),
-    '#description' => t('By default the toot content will be the node title. Choose a text field for more content.'),
+    '#description' => t('By default the toot content will be the node title and a link. Choose a text field for more content.'),
   ];
   // @todo Consider entityreference fields?
   $form['fields']['hashtag_field'] = [
@@ -65,6 +65,21 @@ function mastotoot_form($form, &$form_state) {
     '#options' => _mastotoot_get_node_field_options('taxonomy', $content_type),
     '#default_value' => $config->get('hashtag_field'),
     '#description' => t('Backdrop terms will get converted to hashtags and added to toot content.'),
+  ];
+  $form['extended'] = [
+    '#type' => 'details',
+    '#summary' => t('Extended settings'),
+  ];
+  $form['extended']['visibility'] = [
+    '#type' => 'select',
+    '#title' => t('Toot visibility'),
+    '#options' => [
+      'public' => t('Public'),
+      'unlisted' => t('Unlisted'),
+      'private' => t('Private'),
+    ],
+    '#default_value' => $config->get('visibility'),
+    '#description' => t('"Unlisted" will not appear in the local timeline nor hashtag lists, "Private" is only visible to your followers.'),
   ];
   $form['#validate'][] = 'mastotoot_form_validate';
 

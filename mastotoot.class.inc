@@ -33,9 +33,7 @@ class MastoToot {
    *
    * @see https://docs.joinmastodon.org/entities/Status/#visibility
    */
-  //protected $toot_visibility = 'public';
-  // @todo reset to public. Create UI?
-  protected $toot_visibility = 'unlisted';
+  protected $toot_visibility;
 
   /**
    * @param Node $node
@@ -56,6 +54,7 @@ class MastoToot {
     if (!$node->isNew()) {
       $this->toot_id = $this->fetchTootId($node->nid);
     }
+    $this->toot_visibility = $config->get('visibility');
   }
 
   /**

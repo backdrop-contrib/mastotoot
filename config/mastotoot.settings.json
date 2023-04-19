@@ -4,5 +4,6 @@
     "access_token": "",
     "content_type": "",
     "text_field": "",
-    "hashtag_field": ""
+    "hashtag_field": "",
+    "visibility": "public"
 }
