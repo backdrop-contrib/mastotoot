@@ -194,8 +194,14 @@ class MastoToot {
       // Either set manually, or we're not in hook_node_insert().
       $alias = $node->path['alias'];
     }
-    global $base_url;
-    $build['url'] = $base_url . '/' . $alias;
+    if (!empty($config['override_base_url'])) {
+      $base = $config['override_base_url'];
+    }
+    else {
+      global $base_url;
+      $base = $base_url;
+    }
+    $build['url'] = $base . '/' . $alias;
     // URLs have a fixed charcount in Mastodon.
     $length = $length - 23;
 
