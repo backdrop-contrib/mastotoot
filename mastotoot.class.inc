@@ -289,7 +289,7 @@ class MastoToot {
    */
   protected function termsToHashtags($field_name) {
     $hashtags = '';
-    $field_items = field_get_items('node', $node, $field_name);
+    $field_items = field_get_items('node', $this->node, $field_name);
     if ($field_items) {
       $tags = [];
       foreach ($field_items as $index => $item) {
