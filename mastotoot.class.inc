@@ -163,19 +163,10 @@ class MastoToot {
     $build['title'] = $title;
     $length = $length - mb_strlen($title);
 
-    // Provide taxonomy term items as hashtags.
+    // Provide taxonomy term items as hashtags, if enabled.
     if (!empty($config['hashtag_field'])) {
-      $tags_field = field_get_items('node', $node, $config['hashtag_field']);
-      if ($tags_field) {
-        $tags = [];
-        foreach ($tags_field as $index => $item) {
-          // Scheduled nodes only provide the "tid", when published.
-          $term = taxonomy_term_load($item['tid']);
-          if ($term) {
-            $tags[] = '#' . $this->camelCase($term->name);
-          }
-        }
-        $hashtags = implode(' ', $tags);
+      $hashtags = $this->termsToHashtags($config['hashtag_field']);
+      if (!empty($hashtags)) {
         $build['hashtags'] = $hashtags;
         $length = $length - mb_strlen($hashtags);
       }
@@ -293,6 +284,27 @@ class MastoToot {
   }
 
   /**
+   * @param string $field_name
+   * @return string
+   */
+  protected function termsToHashtags($field_name) {
+    $hashtags = '';
+    $field_items = field_get_items('node', $node, $field_name);
+    if ($field_items) {
+      $tags = [];
+      foreach ($field_items as $index => $item) {
+        // Scheduled nodes only provide the "tid", when published.
+        $term = taxonomy_term_load($item['tid']);
+        if ($term) {
+          $tags[] = '#' . $this->camelCase($term->name);
+        }
+      }
+      $hashtags = implode(' ', $tags);
+    }
+    return $hashtags;
+  }
+
+  /**
    * Replaces whitespace and makes the string camel case.
    *
    * @param string $name
@@ -304,6 +316,8 @@ class MastoToot {
     if (preg_match('/\s/', $name)) {
       $words = explode(' ', $name);
       $result = [];
+      // @todo filter out chars not appropriate for hashtags, but allowed in
+      // terms?
       foreach ($words as $index => $word) {
         if ($index == 0) {
           $result[] = $word;
