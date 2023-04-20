@@ -58,6 +58,15 @@ class MastoToot {
   }
 
   /**
+   * Whether this toot has been shared on your Mastodon instance.
+   *
+   * @return bool
+   */
+  public function isShared() {
+    return !empty($this->toot_id) ? TRUE : FALSE;
+  }
+
+  /**
    * Create and submit a toot to a Mastodon instance.
    *
    * @return void
@@ -192,15 +201,8 @@ class MastoToot {
   }
 
   /**
-   * Whether this toot has been shared on your Mastodon instance.
+   * Get the toot ID from database.
    *
-   * @return bool
-   */
-  public function isShared() {
-    return !empty($this->toot_id) ? TRUE : FALSE;
-  }
-
-  /**
    * @param int $nid
    *   The node ID.
    * @return string|null
@@ -215,6 +217,8 @@ class MastoToot {
   }
 
   /**
+   * Write record to database.
+   *
    * @param int $nid
    *   The node ID.
    * @param string $toot_id
@@ -245,6 +249,8 @@ class MastoToot {
   }
 
   /**
+   * Create a full URL to the node.
+   *
    * @return string
    */
   protected function createNodeUrl() {
@@ -282,7 +288,11 @@ class MastoToot {
   }
 
   /**
+   * Convert Backdrop taxonomy terms to hashtags.
+   *
    * @param string $field_name
+   *   Machine name of the field to get terms from.
+   *
    * @return string
    */
   protected function termsToHashtags($field_name) {
