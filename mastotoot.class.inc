@@ -351,7 +351,7 @@ class MastoToot {
     ]);
 
     if (!empty($response->status_message)) {
-      $message .=  ' ' . $response->status_message;
+      $message .= ' ' . $response->status_message;
     }
     if (!empty($response->data)) {
       $message .= ': ' . $response->data;

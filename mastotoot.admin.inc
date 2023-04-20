@@ -84,7 +84,7 @@ function mastotoot_form($form, &$form_state) {
   $form['extended']['override_base_url'] = [
     '#type' => 'textfield',
     '#title' => 'Override base URL',
-    '#default_value' => $config->get('override_base_url'),// validation
+    '#default_value' => $config->get('override_base_url'),
     '#description' => t('If you experience problems with the base URL used for the link in toots, for example with scheduled content, you can override that here.'),
   ];
   $form['#validate'][] = 'mastotoot_form_validate';
