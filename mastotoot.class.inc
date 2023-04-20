@@ -103,8 +103,7 @@ class MastoToot {
       backdrop_set_message(t('Problem when posting content to %url.', [
         '%url' => $instance,
       ]), 'warning');
-      $info = $this->createWatchdogInfo($response);
-      watchdog('mastotoot', $info, NULL, WATCHDOG_ERROR);
+      $this->logWatchdogError($response);
     }
 
   }
@@ -137,8 +136,7 @@ class MastoToot {
     }
     // Other errors, like 401 or 5xx.
     else {
-      $info = $this->createWatchdogInfo($response);
-      watchdog('mastotoot', $info, NULL, WATCHDOG_ERROR);
+      $this->logWatchdogError($response);
     }
   }
 
@@ -334,21 +332,25 @@ class MastoToot {
   /**
    * @param object $response
    *   Response as provided by backdrop_http_request().
-   * @return string
-   *   A string suitable for messages.
+   *
+   * @return void
    */
-  protected function createWatchdogInfo($response) {
-    $info = '';
+  protected function logWatchdogError($response) {
+    $message = t('Got error code @code.', [
+      '@code' => $response->code,
+    ]);
+
     if (!empty($response->status_message)) {
-      $info = $response->status_message;
+      $message .=  ' ' . $response->status_message;
     }
     if (!empty($response->data)) {
-      $info .= ': ' . $response->data;
+      $message .= ': ' . $response->data;
     }
-    if (empty($info)) {
-      $info = 'An unknown error occured.';
+    if (isset($response->error)) {
+      $message .= ' ' . $response->error;
     }
-    return $info;
+
+    watchdog('mastotoot', $message, NULL, WATCHDOG_ERROR);
   }
 
 }
