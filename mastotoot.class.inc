@@ -159,14 +159,14 @@ class MastoToot {
 
     $title = strip_tags($node->title);
     $build['title'] = $title;
-    $length = $length - mb_strlen($title);
+    $length = $length - backdrop_strlen($title);
 
     // Provide taxonomy term items as hashtags, if enabled.
     if (!empty($config['hashtag_field'])) {
       $hashtags = $this->termsToHashtags($config['hashtag_field']);
       if (!empty($hashtags)) {
         $build['hashtags'] = $hashtags;
-        $length = $length - mb_strlen($hashtags);
+        $length = $length - backdrop_strlen($hashtags);
       }
     }
 
