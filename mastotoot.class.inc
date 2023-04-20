@@ -181,28 +181,8 @@ class MastoToot {
       }
     }
 
-    // No way to get the alias in hook_node_insert, unless set manually.
-    // @todo also check "auto" path setting.
-    if (empty($node->path['alias'])) {
-      if (!function_exists('path_generate_entity_alias')) {
-        // What the heck is going on here??
-        require_once BACKDROP_ROOT . '/core/modules/path/path.inc';
-      }
-      $alias = path_generate_entity_alias($node);
-    }
-    else {
-      // Either set manually, or we're not in hook_node_insert().
-      $alias = $node->path['alias'];
-    }
-    if (!empty($config['override_base_url'])) {
-      $base = $config['override_base_url'];
-    }
-    else {
-      global $base_url;
-      $base = $base_url;
-    }
-    $build['url'] = $base . '/' . $alias;
-    // URLs have a fixed charcount in Mastodon.
+    $build['url'] = $this->createNodeUrl();
+    // URLs always count as 23 characters in Mastodon.
     $length = $length - 23;
 
     // Add a text from configured field, fill up available characters.
@@ -273,6 +253,43 @@ class MastoToot {
     db_delete('mastotoot')
       ->condition('nid', $nid)
       ->execute();
+  }
+
+  /**
+   * @return string
+   */
+  protected function createNodeUrl() {
+    $config = config('mastotoot.settings')->get();
+    $node = $this->node;
+
+    // In hook_node_insert() the alias will not exists yet, unless set manually.
+    if (empty($node->path['alias'])) {
+      if ($node->path['auto']) {
+        if (!function_exists('path_generate_entity_alias')) {
+          // @todo Figure out what causes path.inc not being included here.
+          require_once BACKDROP_ROOT . '/core/modules/path/path.inc';
+        }
+        $alias = path_generate_entity_alias($node);
+      }
+      else {
+        // Fallback when automatic alias has been disabled for this node.
+        $alias = 'node/' . $node->nid;
+      }
+    }
+    else {
+      $alias = $node->path['alias'];
+    }
+
+    if (!empty($config['override_base_url'])) {
+      $base = $config['override_base_url'];
+    }
+    else {
+      global $base_url;
+      $base = $base_url;
+    }
+
+    $node_url = $base . '/' . $alias;
+    return $node_url;
   }
 
   /**
