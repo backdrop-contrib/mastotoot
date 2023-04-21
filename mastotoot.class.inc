@@ -39,13 +39,8 @@ class MastoToot {
    * @param Node $node
    *   The node entity.
    */
-  public function __construct(Node $node) {
+  protected function __construct(Node $node) {
     $config = config('mastotoot.settings');
-    if (empty($config->get('content_type')) || empty($config->get('instance_url'))) {
-      // Nothing to do.
-      return;
-    }
-
     $this->mastodon_url = $config->get('instance_url') . '/api/v1/statuses';
     $this->auth_header = [
       'Authorization' => 'Bearer ' . $config->get('access_token'),
@@ -55,6 +50,26 @@ class MastoToot {
       $this->toot_id = $this->fetchTootId($node->nid);
     }
     $this->toot_visibility = $config->get('visibility');
+  }
+
+  /**
+   * Construct a new toot.
+   *
+   * @param Node $node
+   *   The node entity.
+   *
+   * @return MastoToot|false
+   *   A MastoToot instance to act on, FALSE in case of problems.
+   */
+  public static function create(Node $node) {
+    $config = config('mastotoot.settings');
+    // Catch problems with broken config - unlikely but possible.
+    if (empty($config->get('instance_url')) || empty($config->get('access_token'))) {
+      watchdog('mastotoot', 'Important settings for Mastodon Toot module are missing.', NULL, WATCHDOG_ERROR);
+      return FALSE;
+    }
+    $toot = new MastoToot($node);
+    return $toot;
   }
 
   /**

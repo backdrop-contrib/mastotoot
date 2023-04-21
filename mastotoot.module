@@ -11,8 +11,10 @@ function mastotoot_node_insert(Node $node) {
   $content_type = config_get('mastotoot.settings', 'content_type');
 
   if ($node->type == $content_type && $node->status) {
-    $toot = new MastoToot($node);
-    $toot->submitToot();
+    $toot = MastoToot::create($node);
+    if ($toot) {
+      $toot->submitToot();
+    }
   }
 }
 
@@ -27,7 +29,10 @@ function mastotoot_node_update(Node $node) {
     $original_status = $node->original->status;
 
     if ($new_status != $original_status) {
-      $toot = new MastoToot($node);
+      $toot = MastoToot::create($node);
+      if (!$toot) {
+        return;
+      }
 
       if ($new_status == NODE_PUBLISHED) {
         $toot->submitToot();
@@ -47,8 +52,8 @@ function mastotoot_node_delete(Node $node) {
 
   if ($node->type == $content_type) {
     // @todo Maybe ignore type here (setting might have changed)?
-    $toot = new MastoToot($node);
-    if ($toot->isShared()) {
+    $toot = MastoToot::create($node);
+    if ($toot && $toot->isShared()) {
       $toot->deleteToot();
     }
   }
