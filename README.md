@@ -9,9 +9,6 @@ It deletes the remote toot, whenever a node is deleted
 
 It will not update remote toots, but you can edit them any time on Mastodon.
 
-**Note**: This module is in an early stage of development, but testing is
-appreciated.
-
 ## Requirements
 
 - You need an account on a Mastodon instance, obviously.
@@ -48,6 +45,9 @@ content type. Save configuration.
 
 Now switch to the "Verify credentials" tab, and hit the "Check" button. If
 all went well, it shows a friendly green success message.
+
+Find additional documentation in the
+[Wiki](https://github.com/backdrop-contrib/mastotoot/wiki/Setup-module).
 
 ## Issues
 
