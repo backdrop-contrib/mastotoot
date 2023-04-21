@@ -7,9 +7,15 @@ manually published or scheduled).
 It deletes the remote toot, whenever a node is deleted
  or unpublished.
 
-It will not update remote toots.
+It will not update remote toots, but you can edit them any time on Mastodon.
 
-**Note**: This module is in an early stage of development, bigger changes are likely.
+**Note**: This module is in an early stage of development, but testing is
+appreciated.
+
+## Requirements
+
+- You need an account on a Mastodon instance, obviously.
+- Your Backdrop install has to be able to do HTTP requests.
 
 ## Installation
 
@@ -18,7 +24,7 @@ Install this module using the official
 
 ## Configuration
 
-You'll need to create an access token on your Mastodon instance. Go to your
+You'll need to create an *access token* on your Mastodon instance. Go to your
 account's preferences, switch to "Development" in the left sidebar, and add an
  "App" with the "New application" button.
 
