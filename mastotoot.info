@@ -3,3 +3,4 @@ description = Share your blog posts on Mastodon
 backdrop = 1.x
 type = module
 dependencies[] = path
+configure = admin/config/services/mastotoot/settings

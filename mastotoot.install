@@ -29,6 +29,12 @@ function mastotoot_schema() {
         'default' => '',
         'description' => 'The remote Mastodon status ID.',
       ],
+      'created' => [
+        'description' => 'The Unix timestamp when the toot was shared.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
     ],
     'indexes' => ['nid' => ['nid']],
     'primary key' => ['id'],

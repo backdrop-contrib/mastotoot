@@ -231,6 +231,7 @@ class MastoToot {
       ->fields([
         'nid' => $nid,
         'toot_id' => $toot_id,
+        'created' => REQUEST_TIME,
       ]
     );
     $query->execute();
