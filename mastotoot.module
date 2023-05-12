@@ -10,10 +10,17 @@
 function mastotoot_node_insert(Node $node) {
   $content_type = config_get('mastotoot.settings', 'content_type');
 
-  if ($node->type == $content_type && $node->status) {
-    $toot = MastoToot::create($node);
-    if ($toot) {
-      $toot->submitToot();
+  if ($node->type == $content_type) {
+    if (!empty($node->no_mastodon_share)) {
+      db_insert('mastotoot_noshare')->fields(['nid' => $node->nid])->execute();
+      return;
+    }
+
+    if ($node->status) {
+      $toot = MastoToot::create($node);
+      if ($toot) {
+        $toot->submitToot();
+      }
     }
   }
 }
@@ -25,9 +32,22 @@ function mastotoot_node_update(Node $node) {
   $content_type = config_get('mastotoot.settings', 'content_type');
 
   if ($node->type == $content_type) {
+    $do_not_share = !empty($node->no_mastodon_share);
+    $has_record = !empty($node->original->no_mastodon_share);
+    if ($do_not_share && !$has_record) {
+      db_insert('mastotoot_noshare')->fields(['nid' => $node->nid])->execute();
+    }
+    elseif (!$do_not_share && $has_record) {
+      db_delete('mastotoot_noshare')
+        ->condition('nid', $node->nid)
+        ->execute();
+    }
+    if ($do_not_share) {
+      return;
+    }
+
     $new_status = $node->status;
     $original_status = $node->original->status;
-
     if ($new_status != $original_status) {
       $toot = MastoToot::create($node);
       if (!$toot) {
@@ -55,6 +75,11 @@ function mastotoot_node_delete(Node $node) {
     $toot = MastoToot::create($node);
     if ($toot && $toot->isShared()) {
       $toot->deleteToot();
+    }
+    if (!empty($node->no_mastodon_share)) {
+      db_delete('mastotoot_noshare')
+        ->condition('nid', $node->nid)
+        ->execute();
     }
   }
 }
@@ -125,4 +150,61 @@ function mastotoot_views_api() {
     'api' => 3,
     'path' => backdrop_get_path('module', 'mastotoot'),
   ];
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function mastotoot_form_node_form_alter(&$form, $form_state, $form_id) {
+  $content_type = config_get('mastotoot.settings', 'content_type');
+  if ($form_id == $content_type . '_node_form') {
+    // Can be stub on node creation, but exists.
+    $node = $form['#node'];
+    // New node or unpublished.
+    if (empty($node->nid) || !$node->status) {
+      $form['options']['no_mastodon_share'] = [
+        '#type' => 'checkbox',
+        '#title' => t('Do not share on Mastodon'),
+        '#default_value' => !empty($node->no_mastodon_share) ? 1 : 0,
+        '#description' => t('When this node is published, do not share it on your Mastodon instance.'),
+      ];
+    }
+  }
+}
+
+/**
+ * Implements hook_node_submit().
+ *
+ * Attach dynamic property so it's available in insert/update/delete hooks,
+ * where the nid will be available for new nodes.
+ */
+function mastotoot_node_submit(Node $node, $form, &$form_state) {
+  $content_type = config_get('mastotoot.settings', 'content_type');
+  if ($node->type == $content_type) {
+    if (!empty($form_state['values']['no_mastodon_share'])) {
+      $node->no_mastodon_share = 1;
+    }
+  }
+}
+
+/**
+ * Implements hook_node_load().
+ *
+ * This is necessary for scheduled nodes, which need the information in node's
+ * hook_cron.
+ */
+function mastotoot_node_load($nodes, $types) {
+  $content_type = config_get('mastotoot.settings', 'content_type');
+
+  // Return early if none of the types to load affect us.
+  if (!in_array($content_type, $types)) {
+    return;
+  }
+
+  $not_to_share = db_query('SELECT nid FROM {mastotoot_noshare} WHERE nid IN(:nids)', array(
+    ':nids' => array_keys($nodes),
+  ))->fetchAllAssoc('nid');
+  foreach (array_keys($not_to_share) as $nid) {
+    $nodes[$nid]->no_mastodon_share = 1;
+  }
 }

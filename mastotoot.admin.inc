@@ -77,6 +77,7 @@ function mastotoot_form($form, &$form_state) {
       'public' => t('Public'),
       'unlisted' => t('Unlisted'),
       'private' => t('Private'),
+      'direct' => t('Only mentioned'),
     ],
     '#default_value' => $config->get('visibility'),
     '#description' => t('"Unlisted" will not appear in the local timeline nor hashtag lists, "Private" is only visible to your followers.'),

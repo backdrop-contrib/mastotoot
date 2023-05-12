@@ -39,5 +39,30 @@ function mastotoot_schema() {
     'indexes' => ['nid' => ['nid']],
     'primary key' => ['id'],
   ];
+  $schema['mastotoot_noshare'] = [
+    'fields' => [
+      'id' => [
+        'description' => 'The primary identifier.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'nid' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {node}.nid of content not to share on Mastodon.',
+      ],
+    ],
+    'indexes' => ['nid' => ['nid']],
+    'primary key' => ['id'],
+  ];
   return $schema;
+}
+
+/**
+ * Create additional database table for node share exclusions.
+ */
+function mastotoot_update_1000() {
+  db_create_table('mastotoot_noshare', backdrop_get_schema_unprocessed('mastotoot', 'mastotoot_noshare'));
 }
