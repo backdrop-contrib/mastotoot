@@ -169,6 +169,15 @@ function mastotoot_form_node_form_alter(&$form, $form_state, $form_id) {
         '#description' => t('When this node is published, do not share it on your Mastodon instance.'),
       ];
     }
+    // Published nodes excluded from sharing via above form item.
+    elseif (!empty($node->no_mastodon_share)) {
+      $form['options']['no_mastodon_share'] = [
+        '#type' => 'markup',
+        '#markup' => t('This @type is not shared on Mastodon', [
+          '@type' => $content_type,
+        ]),
+      ];
+    }
   }
 }
 
