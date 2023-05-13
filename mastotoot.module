@@ -91,8 +91,8 @@ function mastotoot_menu() {
   $items['admin/config/services/mastotoot'] = [
     'title' => 'Mastodon Toot',
     'page callback' => 'backdrop_get_form',
-    'page arguments' => array('mastotoot_form'),
-    'access arguments' => array('configure mastotoot'),
+    'page arguments' => ['mastotoot_form'],
+    'access arguments' => ['configure mastotoot'],
     'file' => 'mastotoot.admin.inc',
   ];
   $items['admin/config/services/mastotoot/settings'] = [
@@ -102,8 +102,8 @@ function mastotoot_menu() {
   $items['admin/config/services/mastotoot/verify'] = [
     'title' => 'Verify credentials',
     'page callback' => 'backdrop_get_form',
-    'page arguments' => array('mastotoot_verify_token_form'),
-    'access arguments' => array('configure mastotoot'),
+    'page arguments' => ['mastotoot_verify_token_form'],
+    'access arguments' => ['configure mastotoot'],
     'file' => 'mastotoot.admin.inc',
     'type' => MENU_LOCAL_TASK,
   ];
@@ -210,9 +210,9 @@ function mastotoot_node_load($nodes, $types) {
     return;
   }
 
-  $not_to_share = db_query('SELECT nid FROM {mastotoot_noshare} WHERE nid IN(:nids)', array(
+  $not_to_share = db_query('SELECT nid FROM {mastotoot_noshare} WHERE nid IN(:nids)', [
     ':nids' => array_keys($nodes),
-  ))->fetchAllAssoc('nid');
+  ])->fetchAllAssoc('nid');
   foreach (array_keys($not_to_share) as $nid) {
     $nodes[$nid]->no_mastodon_share = 1;
   }
