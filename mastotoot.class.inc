@@ -207,7 +207,9 @@ class MastoToot {
         $stripped = strip_tags($text_field['value']);
         // Consider newlines.
         $length = $length - (count($build) * 2);
-        $build['text'] = text_summary($stripped, NULL, $length);
+        $text = text_summary($stripped, NULL, $length);
+        // Revert newline encoding done by text_summary.
+        $build['text'] = html_entity_decode($text);
       }
     }
 
