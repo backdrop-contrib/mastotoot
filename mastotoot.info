@@ -4,3 +4,4 @@ backdrop = 1.x
 type = module
 dependencies[] = path
 configure = admin/config/services/mastotoot/settings
+maintainers[indigoxela] = indigoxela
